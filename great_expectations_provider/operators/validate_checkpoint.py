@@ -50,5 +50,11 @@ class GXValidateCheckpointOperator(BaseOperator):
         else:
             gx_context = gx.get_context(mode=self.context_type)
         checkpoint = self.configure_checkpoint(gx_context)
-        result = checkpoint.run(batch_parameters=self.batch_parameters)
+
+        runtime_batch_params = context.get("params", {}).get("gx_batch_parameters")  # type: ignore[call-overload]
+        if runtime_batch_params:
+            batch_parameters = runtime_batch_params
+        else:
+            batch_parameters = self.batch_parameters
+        result = checkpoint.run(batch_parameters=batch_parameters)
         return result.describe_dict()

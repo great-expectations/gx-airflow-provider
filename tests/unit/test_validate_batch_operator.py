@@ -220,7 +220,7 @@ class TestValidateBatchOperator:
         # assert
         mock_gx.get_context.assert_called_once_with(mode=context_type)
 
-    def test_batch_parameters(self, mock_gx: Mock):
+    def test_batch_parameters_passed_on_init(self, mock_gx: Mock):
         """Expect that param batch_parameters is passed to BatchDefinition.get_batch"""
         # arrange
         mock_context = mock_gx.get_context.return_value
@@ -249,6 +249,76 @@ class TestValidateBatchOperator:
         # assert
         mock_validation_definition.run.assert_called_once_with(
             batch_parameters=batch_parameters
+        )
+
+    def test_batch_parameters_passed_through_context_parameters(self, mock_gx: Mock):
+        """Expect that param batch_parameters is passed to BatchDefinition.get_batch"""
+        # arrange
+        mock_context = mock_gx.get_context.return_value
+        mock_validation_definition = (
+            mock_context.validation_definitions.add_or_update.return_value
+        )
+        mock_batch_definition = Mock()
+        expect = Mock()
+        batch_parameters = {
+            "year": "2024",
+            "month": "01",
+            "day": "01",
+        }
+
+        validate_batch = GXValidateBatchOperator(
+            task_id="validate_batch_success",
+            configure_batch_definition=lambda context: mock_batch_definition,
+            expect=expect,
+            context_type="ephemeral",
+        )
+
+        # act
+        validate_batch.execute(
+            context={"params": {"gx_batch_parameters": batch_parameters}}  # type: ignore[typeddict-item]
+        )
+
+        # assert
+        mock_validation_definition.run.assert_called_once_with(
+            batch_parameters=batch_parameters
+        )
+
+    def test_context_batch_parameters_take_precedence(self, mock_gx: Mock):
+        """Expect that param batch_parameters is passed to BatchDefinition.get_batch"""
+        # arrange
+        mock_context = mock_gx.get_context.return_value
+        mock_validation_definition = (
+            mock_context.validation_definitions.add_or_update.return_value
+        )
+        mock_batch_definition = Mock()
+        expect = Mock()
+        init_batch_parameters = {
+            "year": "2020",
+            "month": "02",
+            "day": "09",
+        }
+        context_batch_parameters = {
+            "year": "2024",
+            "month": "01",
+            "day": "01",
+        }
+
+        validate_batch = GXValidateBatchOperator(
+            task_id="validate_batch_success",
+            configure_batch_definition=lambda context: mock_batch_definition,
+            expect=expect,
+            batch_parameters=init_batch_parameters,
+            context_type="ephemeral",
+        )
+
+        # act
+        validate_batch.execute(
+            context={"params": {"gx_batch_parameters": context_batch_parameters}}  # type: ignore[typeddict-item]
+        )
+
+        # assert
+        mock_validation_definition.run.assert_called_once_with(
+            batch_parameters=context_batch_parameters
         )
 
     def test_validation_definition_construction(self, mock_gx: Mock):
