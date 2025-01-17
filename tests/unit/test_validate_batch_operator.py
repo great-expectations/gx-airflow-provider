@@ -1,6 +1,6 @@
 import json
 from typing import Literal
-from unittest.mock import Mock
+from unittest.mock import Mock, create_autospec
 
 import pandas as pd
 import pytest
@@ -259,8 +259,8 @@ class TestValidateBatchOperator:
         mock_validation_definition = (
             mock_context.validation_definitions.add_or_update.return_value
         )
-        mock_batch_definition = Mock()
-        expect = Mock()
+        mock_batch_definition = create_autospec(BatchDefinition)
+        expect = create_autospec(ExpectationSuite)
         batch_parameters = {
             "year": "2024",
             "month": "01",
@@ -291,8 +291,8 @@ class TestValidateBatchOperator:
         mock_validation_definition = (
             mock_context.validation_definitions.add_or_update.return_value
         )
-        mock_batch_definition = Mock()
-        expect = Mock()
+        mock_batch_definition = create_autospec(BatchDefinition)
+        expect = create_autospec(ExpectationSuite)
         init_batch_parameters = {
             "year": "2020",
             "month": "02",
@@ -331,8 +331,8 @@ class TestValidateBatchOperator:
         mock_context = mock_gx.get_context.return_value
         mock_validation_definition_factory = mock_context.validation_definitions
         mock_validation_definition = mock_gx.ValidationDefinition.return_value
-        mock_batch_definition = Mock()
-        expect = Mock()
+        mock_batch_definition = create_autospec(BatchDefinition)
+        expect = create_autospec(ExpectationSuite)
 
         validate_batch = GXValidateBatchOperator(
             task_id=task_id,
